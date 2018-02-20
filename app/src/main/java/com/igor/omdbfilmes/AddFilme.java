@@ -25,11 +25,11 @@ import org.json.JSONObject;
 
 public class AddFilme extends AppCompatActivity {
 
-    private EditText etNomeFilme;
+    private EditText editTextNomeFilmePesquisa;
     private TextView textViewRespostaAPI;
     private RequestQueue requestQueque;
     private Button botaoAdicionarFilme;
-    private DatabaseReference mDatabase;
+    private DatabaseReference firebaseReference;
     private Filme filmeASerAdicionado;
     private Button botaoCancelar;
 
@@ -38,22 +38,27 @@ public class AddFilme extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_filme);
 
-        mDatabase = FirebaseDatabase.getInstance().getReference();
-
-        etNomeFilme = (EditText) findViewById(R.id.etNomeFilme);
+        editTextNomeFilmePesquisa = (EditText) findViewById(R.id.etNomeFilme);
         textViewRespostaAPI = (TextView) findViewById(R.id.textViewRespostaAPI);
         botaoAdicionarFilme = (Button) findViewById(R.id.botaoAdicionarFilme);
         botaoCancelar = (Button) findViewById(R.id.botaoCancelar);
 
+        //firebase
+        firebaseReference = FirebaseDatabase.getInstance().getReference();
+
+        //volley
         requestQueque = Volley.newRequestQueue(this);
 
-        etNomeFilme.addTextChangedListener(new TextWatcher() { //faz uma requisicao a api toda vez que é adicionado um novo caractere
+
+        ///////////////////////////////////Listeners:
+
+        editTextNomeFilmePesquisa.addTextChangedListener(new TextWatcher() { //faz uma requisicao a api toda vez que é adicionado um novo caractere
             @Override
             public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {}
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                buscarFilme(etNomeFilme.getText().toString());
+                buscarFilme(editTextNomeFilmePesquisa.getText().toString());
             }
 
             @Override
@@ -78,7 +83,7 @@ public class AddFilme extends AppCompatActivity {
     }
 
     private void adicionarFilme(){
-        mDatabase.child("filmes").child(filmeASerAdicionado.getId()).setValue(filmeASerAdicionado);
+        firebaseReference.child("filmes").child(filmeASerAdicionado.getId()).setValue(filmeASerAdicionado);
         Toast.makeText(this, "Filme adicionado com sucesso.", Toast.LENGTH_SHORT).show();
         voltarTela();
     }
@@ -91,15 +96,15 @@ public class AddFilme extends AppCompatActivity {
 
     private void buscarFilme(String filme) {
 
-        String url = "http://www.omdbapi.com/?t=" + filme + "&apikey=2b8b96c3"; //link de consulta a api do omdb
+        String urlAPIOMDB = "http://www.omdbapi.com/?t=" + filme + "&apikey=2b8b96c3"; //link de consulta a api do omdb
 
         Response.Listener responseListener = new Response.Listener<JSONObject>() {
             @Override
             public void onResponse(JSONObject response) {
                 try {
-                    String statusResposta = response.getString("Response");
-                    String texto;
-                    if(statusResposta.equals("True")){
+                    String statusRespostaAPI = response.getString("Response");
+                    String textoInformacoesDoFilme;
+                    if(statusRespostaAPI.equals("True")){
 
                         String id = (String) response.getString("imdbID");
                         String titulo = (String) response.getString("Title");
@@ -115,14 +120,14 @@ public class AddFilme extends AppCompatActivity {
 
                         filmeASerAdicionado = new Filme(id, titulo, diretor, atores, genero, capa, produtora, duracao, autor, ano, classificacao);
 
-                        texto = "ID: " + id + " \nTítulo: " + titulo + " \nAno: " + ano + " \nDiretor: " + diretor + " \nDuração: " + duracao;
+                        textoInformacoesDoFilme = "ID: " + id + " \nTítulo: " + titulo + " \nAno: " + ano + " \nDiretor: " + diretor + " \nDuração: " + duracao;
 
                         botaoAdicionarFilme.setEnabled(true); //caso exista um filme que bata com aquela string, habilita o botao de add filme
                     }else{
-                        texto = "Nenhum título correspondente!";
+                        textoInformacoesDoFilme = "Nenhum título correspondente!";
                         botaoAdicionarFilme.setEnabled(false); //desabilita o botao caso nao encontre um filme que bata com aquela string
                     }
-                    textViewRespostaAPI.setText(texto);
+                    textViewRespostaAPI.setText(textoInformacoesDoFilme);
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
@@ -136,7 +141,7 @@ public class AddFilme extends AppCompatActivity {
             }
         };
 
-        JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, url, (String) null, responseListener, responseError);
+        JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, urlAPIOMDB, (String) null, responseListener, responseError);
 
         requestQueque.add(request);
 

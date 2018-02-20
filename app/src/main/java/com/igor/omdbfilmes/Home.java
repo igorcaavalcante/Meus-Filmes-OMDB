@@ -23,7 +23,7 @@ public class Home extends AppCompatActivity {
 
     private FloatingActionButton fab;
     private ArrayList<String> nomesDosFilmes;
-    private ArrayList<Filme> filmes;
+    private ArrayList<Filme> objetosFilmes;
     private ArrayAdapter<String> adapter;
     private ValueEventListener valueEventListener;
     private ListView listViewFilmes;
@@ -45,14 +45,16 @@ public class Home extends AppCompatActivity {
 
         //nomes pro listview
         nomesDosFilmes = new ArrayList<>();
-        filmes = new ArrayList<>();
+        objetosFilmes = new ArrayList<>();
 
+        //adapter pro listview de filmes
         adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, nomesDosFilmes);
         listViewFilmes.setAdapter(adapter);
         listViewFilmes.setOnItemClickListener(verDetalhesFilme(Home.this)); //"link" pra abrir detalhes do app
 
-        //float action button: adicionar um filme
-        fab.setOnClickListener(new View.OnClickListener() {
+
+        ////////////////////////////////////////////////////Listeners
+        fab.setOnClickListener(new View.OnClickListener() { //novo filme
             @Override
             public void onClick(View view) {
                 Intent it = new Intent(Home.this, AddFilme.class);
@@ -61,17 +63,16 @@ public class Home extends AppCompatActivity {
             }
         });
 
-        //carregando os filmes
-        myRef.addValueEventListener(new ValueEventListener() {
+        myRef.addValueEventListener(new ValueEventListener() { //carregando os filmes
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 //limpando os arrays pra não duplicar quando atualizar
                 nomesDosFilmes.clear();
-                filmes.clear();
+                objetosFilmes.clear();
                 for(DataSnapshot data : dataSnapshot.getChildren()){
                     Filme f = data.getValue(Filme.class);
-                    nomesDosFilmes.add(f.getTitulo()); //adicionando os nomes dos filmes pra serem exibidos no listview
-                    filmes.add(f); //adicionando o objeto filme pra quando quiser ver detalhes a partir do listview
+                    nomesDosFilmes.add(f.getTitulo()); //adicionando os nomes dos objetosFilmes pra serem exibidos no listview
+                    objetosFilmes.add(f); //adicionando o objeto filme pra quando quiser ver detalhes a partir do listview
                     adapter.notifyDataSetChanged(); //atuzlizando o adapter
                 }
             }
@@ -84,12 +85,12 @@ public class Home extends AppCompatActivity {
     public AdapterView.OnItemClickListener verDetalhesFilme(final Context context){
         return(new AdapterView.OnItemClickListener() {
             @Override
-            public void onItemClick(AdapterView<?> av, View v, int i, long id) {
+            public void onItemClick(AdapterView<?> av, View v, int position, long id) {
                 //esta funcao abre os detalhes de um filme passando o id como parametro pelo intent
-                String idFilme = filmes.get(i).getId();
-                Intent it = new Intent(context, VerDetalhesFilme.class);
-                it.putExtra("id", idFilme);
-                startActivity(it);
+                String idFilme = objetosFilmes.get(position).getId();
+                Intent intentVerDetalhes = new Intent(context, VerDetalhesFilme.class);
+                intentVerDetalhes.putExtra("id", idFilme);
+                startActivity(intentVerDetalhes);
                 finish();
             }
         });

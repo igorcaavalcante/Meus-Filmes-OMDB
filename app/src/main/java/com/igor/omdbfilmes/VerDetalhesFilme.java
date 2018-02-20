@@ -32,27 +32,20 @@ public class VerDetalhesFilme extends AppCompatActivity {
         botaoExcluirFilme = (Button) findViewById(R.id.botaoExcluirFilme);
         botaoVoltar = (Button) findViewById(R.id.botaoVoltar);
 
-        Intent i = getIntent();
-        final String idFilme = i.getExtras().getString("id"); //filme clicado na home
+        Intent activityAnterior = getIntent();
+        final String idFilme = activityAnterior.getExtras().getString("id"); //pegando id do filme clicado na home
 
         FirebaseDatabase database = FirebaseDatabase.getInstance();
-        final DatabaseReference myRef = database.getReference("filmes");
+        final DatabaseReference myRef = database.getReference("filmes").child(idFilme);
 
         myRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-
-                //buscando o filme clicado de acordo com o id:
-                for(DataSnapshot data : dataSnapshot.getChildren()){
-                    Filme f = data.getValue(Filme.class);
-                    if(f.getId().equals(idFilme)) { //se o filme for igual ao que veio clicado da outra tela
-                        texto = "ID: " + f.getId() + " \nTítulo: " + f.getTitulo() + " \nAno: " + f.getAno() +
-                                " \nDiretor: " + f.getDiretor() + " \nDuração: " + f.getDuracao() + " \nAtores: "  + f.getAtores() +
-                                " \nClassificação OMDB: " + f.getClassificacao() + " \nGênero: " + f.getGenero() + " \nProdução: " + f.getProdutora();
-                        textViewDetalhes.setText(texto);
-                        break;
-                    }
-                }
+                Filme f = dataSnapshot.getValue(Filme.class);
+                texto = "ID: " + f.getId() + " \nTítulo: " + f.getTitulo() + " \nAno: " + f.getAno() +
+                        " \nDiretor: " + f.getDiretor() + " \nDuração: " + f.getDuracao() + " \nAtores: "  + f.getAtores() +
+                        " \nClassificação OMDB: " + f.getClassificacao() + " \nGênero: " + f.getGenero() + " \nProdução: " + f.getProdutora();
+                textViewDetalhes.setText(texto);
             }
 
             @Override
